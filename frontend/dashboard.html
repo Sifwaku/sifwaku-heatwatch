@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zambia Weather — SIFWAKU HeatWatch</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="weather-dashboard-page">
+  <header class="navbar">
+    <span class="brand"><span class="brand-mark">HW</span> SIFWAKU HeatWatch</span>
+    <nav>
+      <a href="/dashboard" class="active">Weather</a>
+      <a href="/history">History</a>
+    </nav>
+  </header>
+
+  <main class="container warning-dashboard">
+    <div class="agency-kicker">ZAMBIA WEATHER · LIVE PROVIDER DATA</div>
+    <div class="page-heading">
+      <div>
+        <h1>Weather at a glance</h1>
+        <p class="lead" id="location-lead">Lusaka · current conditions and seven-day outlook</p>
+      </div>
+      <div class="issued-block">
+        <span class="eyebrow">LAST UPDATED</span>
+        <strong id="last-updated">Loading weather...</strong>
+      </div>
+    </div>
+
+    <div class="toolbar toolbar-panel">
+      <div class="location-controls">
+        <div><label for="province-select">Province</label><select id="province-select" aria-label="Select province"></select></div>
+        <div><label for="district-search">District or town</label><input id="district-search" list="district-options" placeholder="Search a district or town" autocomplete="off" /><datalist id="district-options"></datalist></div>
+        <input id="location-name" type="hidden" value="Lusaka" />
+        <input id="latitude" type="hidden" value="-15.4167" />
+        <input id="longitude" type="hidden" value="28.2833" />
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn" id="btn-refresh" onclick="refreshAll()">Refresh weather</button>
+        <button class="btn btn-secondary" id="btn-auto" onclick="toggleAutoRefresh()" aria-pressed="true">Auto-refresh: on</button>
+        <span id="loading" style="display:none"><span class="spinner"></span> Updating weather...</span>
+      </div>
+      <span class="toolbar-note">Updates every 15 minutes · provider timing may vary.</span>
+    </div>
+
+    <section class="warning-banner warning-unknown" aria-live="polite">
+      <div class="warning-symbol" aria-hidden="true">i</div>
+      <div class="warning-copy">
+        <span class="eyebrow">INDICATIVE HEAT-RISK SCREEN</span>
+        <h2 id="warning-title">Loading conditions</h2>
+        <p id="warning-action">A provider-based estimate is being requested.</p>
+        <p class="quality-label" id="data-quality">Checking source and freshness...</p>
+      </div>
+      <div class="warning-score">
+        <span class="eyebrow">ILLUSTRATIVE INDEX</span>
+        <strong id="warning-score">--</strong><span>/100</span>
+        <small>Not a probability</small>
+      </div>
+    </section>
+
+    <div class="source-line"><span class="live-dot pending"></span><span id="observation-meta">Waiting for the weather provider...</span></div>
+
+    <details class="prediction-limits">
+      <summary>Why this is not a validated prediction yet</summary>
+      <div class="prediction-limits-copy">
+        <p>Conditions, the 72-hour outlook, NOAA ENSO context and historical patterns support situational awareness, but they do not yet make this a validated prediction service.</p>
+        <ul>
+          <li>Weather comes from provider estimates; no local station observations are attached.</li>
+          <li>The heat screen and rain, wind and cold thresholds are illustrative, not calibrated probabilities or official warnings.</li>
+          <li>Historical values are also provider estimates, so they cannot validate earlier forecasts against observed weather.</li>
+          <li>The page refreshes every 15 minutes, but provider update timing and the data timestamp determine how recent the weather is.</li>
+        </ul>
+        <h3>What would make predictions trustworthy</h3>
+        <p>Collect timestamped forecasts and local observations over time, compare each forecast with what happened, and report accuracy and uncertainty by location and forecast lead time. Then add multiple forecast sources, fallback handling and alerts backed by measured performance.</p>
+      </div>
+    </details>
+
+    <div class="card current-conditions-card">
+      <div class="section-heading"><span class="section-number">NOW</span><h2>Current conditions</h2></div>
+      <div id="weather-error"></div>
+      <div class="grid grid-4">
+        <div class="metric"><div class="label">Temperature</div><div class="value" id="t-temp">—</div></div>
+        <div class="metric"><div class="label">Humidity</div><div class="value" id="t-hum">—</div></div>
+        <div class="metric"><div class="label">Wind</div><div class="value" id="t-wind">—</div></div>
+        <div class="metric"><div class="label">Rainfall</div><div class="value" id="t-rain">—</div></div>
+        <div class="metric"><div class="label">Pressure</div><div class="value" id="t-pressure">—</div></div>
+      </div>
+    </div>
+
+    <div class="card forecast-card">
+      <div class="section-heading"><span class="section-number">NEXT</span><h2>Seven-day weather outlook</h2></div>
+      <div id="forecast-chart" class="forecast-chart" aria-live="polite">Waiting for forecast data.</div>
+      <details class="forecast-details">
+        <summary>First 24 hourly estimates</summary>
+        <div id="forecast-body" style="overflow-x:auto;color:var(--muted)">Updating forecast...</div>
+      </details>
+    </div>
+
+    <section class="card planning-brief" id="planning-brief-card" aria-labelledby="planning-brief-heading">
+      <div class="section-heading"><span class="section-number">PLAN</span><h2 id="planning-brief-heading">7-day farm and district brief</h2></div>
+      <p class="planning-brief-intro">A quick view for field planning and district situation updates. Rain totals are estimates for the selected point, not measurements across the whole district.</p>
+      <div class="planning-brief-meta" id="planning-brief-meta" aria-live="polite">Waiting for the weather forecast…</div>
+      <div class="planning-table-wrap">
+        <table class="planning-table">
+          <thead><tr><th scope="col">Day</th><th scope="col">Forecast rain</th><th scope="col">Temperature range</th></tr></thead>
+          <tbody id="planning-brief-body"><tr><td colspan="3">Forecast is loading.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="planning-brief-note">Use this estimate alongside field conditions and local reports. Partial days are marked; rainfall totals are only full-day totals when all 24 hourly values are available. This is not an official advisory or a planting recommendation.</p>
+      <div class="planning-brief-actions">
+        <button class="btn" id="planning-print" type="button" onclick="printPlanningBrief()" disabled>Print / save brief</button>
+        <button class="btn btn-secondary" id="planning-csv" type="button" onclick="downloadPlanningCsv()" disabled>Download daily CSV</button>
+      </div>
+    </section>
+
+    <div class="card map-panel">
+      <div class="section-heading"><span class="section-number">LIVE MAP</span><h2>Zambia weather map</h2></div>
+      <div class="province-map-layout">
+        <div class="province-map-card">
+          <p class="map-selection-label">Select a province or town. Current conditions below are for the selected point.</p>
+          <div class="map-canvas-wrap">
+          <svg id="zambia-map" viewBox="0 0 800 680" role="img" aria-label="Map of Zambia's ten provinces">
+            <defs><clipPath id="zambia-rainfall-clip" clipPathUnits="userSpaceOnUse"></clipPath></defs>
+            <g id="rainfall-raster-layer" clip-path="url(#zambia-rainfall-clip)" pointer-events="none"></g>
+            <g id="province-layer"></g>
+            <g id="district-layer"></g>
+          </svg>
+          </div>
+          <div class="rainfall-legend" aria-label="Satellite rainfall intensity legend">
+            <div class="rainfall-legend-scale"><img src="https://gibs.earthdata.nasa.gov/legends/GPM_Precipitation_Rate_H.svg" alt="NASA GPM rain-rate colour scale in millimetres per hour" loading="lazy" /></div>
+          </div>
+          <div class="rainfall-controls" aria-label="Satellite rainfall map controls">
+            <div class="rainfall-controls-head">
+              <div><strong>Satellite rainfall</strong><span id="rainfall-frame-label" aria-live="polite">Loading the latest available image…</span></div>
+              <button class="btn btn-secondary" id="rainfall-play" type="button" aria-pressed="false" disabled>Animate recent rain</button>
+            </div>
+            <label class="rainfall-time-label" for="rainfall-time-slider">Recent satellite timeline · 30-minute frames</label>
+            <input id="rainfall-time-slider" type="range" min="0" max="0" value="0" step="1" disabled aria-label="Choose a satellite rainfall frame" />
+            <div class="rainfall-time-ends"><span id="rainfall-oldest-label">Earlier</span><span id="rainfall-latest-label">Latest</span></div>
+            <div class="rainfall-controls-foot">
+              <span id="rainfall-map-status" role="status">Loading NASA satellite timestamps…</span>
+              <label for="rainfall-opacity">Rain layer strength <input id="rainfall-opacity" type="range" min="0" max="100" value="62" aria-label="Rainfall layer opacity" /></label>
+            </div>
+            <p class="rainfall-note">Satellite-estimated rainfall, not ground radar. Each image averages 30 minutes and may arrive about 4 hours or more later. Times are UTC. Source: <a href="https://gpm.nasa.gov/data/imerg" target="_blank" rel="noopener noreferrer">NASA GPM IMERG</a>.</p>
+          </div>
+          <div class="map-legend" aria-label="Map legend">
+            <span><i class="map-legend-dot" aria-hidden="true"></i>District or town point</span>
+            <span><i class="map-legend-selected" aria-hidden="true"></i>Selected location</span>
+            <span><i class="map-legend-province" aria-hidden="true"></i>Selected province</span>
+          </div>
+          <p class="map-selection-label">Viewing <strong id="selected-province-name">Lusaka</strong></p>
+          <p id="province-map-status" class="map-status" aria-live="polite">Province boundaries · circles mark district and town reference locations.</p>
+          <p class="map-explainer">Point readings are provider estimates, not province-wide measurements. Boundaries: <a href="https://www.geoboundaries.org/api/current/gbOpen/ZMB/ADM1/" target="_blank" rel="noopener noreferrer">geoBoundaries · Zambia Data Hub (2020)</a> · CC BY 4.0.</p>
+        </div>
+      </div>
+    </div>
+
+    <details class="card data-details">
+      <summary>Data, sources and how this screen works</summary>
+      <div class="grid grid-2 details-metrics">
+        <div class="metric"><div class="label">ENSO phase</div><div class="value" id="e-phase">—</div></div>
+        <div class="metric"><div class="label">ENSO index (ONI)</div><div class="value" id="e-index">—</div></div>
+        <div class="metric"><div class="label">Illustrative screen index</div><div class="value" id="r-score">—</div></div>
+        <div class="metric"><div class="label">Screen category</div><div class="value" id="r-level">—</div></div>
+      </div>
+      <p id="r-disclaimer" class="disclaimer details-disclaimer"></p>
+      <p class="details-links"><a href="/api-sources-page">Live provider status</a><a href="/api-lab">API laboratory</a></p>
+    </details>
+
+    <section class="hazard-outlook" aria-labelledby="hazard-heading">
+      <div class="section-heading"><span class="section-number">OUTLOOK</span><h2 id="hazard-heading">Rain, wind and cool-weather screening</h2></div>
+      <div id="hazard-advisories" class="hazard-grid" aria-live="polite">
+        <article class="hazard-item hazard-unavailable"><span class="hazard-kind">Heavy rainfall</span><strong>Checking forecast</strong><p>Waiting for usable hourly provider data.</p></article>
+        <article class="hazard-item hazard-unavailable"><span class="hazard-kind">Strong wind</span><strong>Checking forecast</strong><p>Waiting for usable hourly provider data.</p></article>
+        <article class="hazard-item hazard-unavailable"><span class="hazard-kind">Cold exposure</span><strong>Checking forecast</strong><p>Waiting for usable hourly provider data.</p></article>
+      </div>
+      <details class="outlook-details">
+        <summary>Screening thresholds and limits</summary>
+        <p class="hazard-disclaimer">The screen uses the peak rolling 24-hour period in the 3-day forecast and project thresholds: rainfall ≥50/100 mm, sustained wind ≥40/60 km/h, and forecast low ≤16/8/5°C. These are not official warning criteria; rainfall is not a flood prediction, and forecast wind does not include gusts.</p>
+      </details>
+    </section>
+
+    <div class="card guidance-card">
+      <div class="section-heading"><span class="section-number">GUIDANCE</span><h2>Staying safe in hot weather</h2></div>
+      <div class="guidance-grid">
+        <div><strong>Stay cool</strong><span>Move activity to cooler hours and rest in shade.</span></div>
+        <div><strong>Drink water</strong><span>Drink regularly; do not wait until you feel thirsty.</span></div>
+        <div><strong>Check on others</strong><span>Look in on older people, children, and anyone working outdoors.</span></div>
+      </div>
+    </div>
+
+    <p class="disclaimer official-note">This service supports situational awareness. It is not a substitute for an official alert from a national authority or for medical advice. Weather values are supplied by the named provider and may differ from local observations.</p>
+  </main>
+
+  <script src="assets/js/app.js?v=3"></script>
+  <script>
+    const HOT_TEMP_THRESHOLD_C = 32;
+    const COLD_TEMP_THRESHOLD_C = 16;
+    let planningBriefRows = [];
+    let planningBriefContext = null;
+
+    function zambiaForecastTime(timestamp) {
+      const value = String(timestamp || "");
+      return Date.parse(/(?:Z|[+-]\d{2}:\d{2})$/i.test(value) ? value : `${value}+02:00`);
+    }
+
+    function forecastDays(forecast, generatedAt) {
+      const days = new Map();
+      const forecastIssuedAt = generatedAt ? Date.parse(generatedAt) : null;
+      (forecast || []).forEach((point) => {
+        const day = String(point.timestamp || "").slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+        const pointTime = zambiaForecastTime(point.timestamp);
+        if (!Number.isFinite(pointTime) || (Number.isFinite(forecastIssuedAt) && pointTime <= forecastIssuedAt)) return;
+        if (!days.has(day)) days.set(day, []);
+        days.get(day).push(point);
+      });
+      return [...days.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([day, points]) => {
+        const rainfall = points.map((point) => Number(point.rainfall_mm)).filter(Number.isFinite);
+        const temperatures = points.map((point) => Number(point.temperature_c)).filter(Number.isFinite);
+        return {
+          day,
+          rainfallMm: rainfall.length ? rainfall.reduce((sum, value) => sum + value, 0) : null,
+          rainfallHours: rainfall.length,
+          minTemp: temperatures.length ? Math.min(...temperatures) : null,
+          maxTemp: temperatures.length ? Math.max(...temperatures) : null,
+          temperatureHours: temperatures.length,
+        };
+      });
+    }
+
+    function formatDay(day) {
+      const [year, month, date] = day.split("-").map(Number);
+      return new Date(Date.UTC(year, month - 1, date, 10)).toLocaleDateString("en-ZM", { timeZone: "Africa/Lusaka", weekday: "short", month: "short", day: "numeric" });
+    }
+
+    function renderPlanningBrief(forecast, context) {
+      planningBriefRows = forecastDays(forecast, context?.generatedAt);
+      planningBriefContext = context;
+      const body = document.getElementById("planning-brief-body");
+      const meta = document.getElementById("planning-brief-meta");
+      const enabled = planningBriefRows.length > 0;
+      document.getElementById("planning-print").disabled = !enabled;
+      document.getElementById("planning-csv").disabled = !enabled;
+      if (!enabled) {
+        body.innerHTML = '<tr><td colspan="3">No usable daily forecast is available for this location.</td></tr>';
+        meta.textContent = "Brief unavailable · try refreshing or choose another location.";
+        return;
+      }
+      meta.textContent = `${context.location} · ${context.provider} point forecast · generated ${new Date(context.generatedAt).toLocaleString()} · ${context.coordinates}`;
+      body.innerHTML = planningBriefRows.map((row) => {
+        const rain = row.rainfallMm == null
+          ? "Unavailable"
+          : `${row.rainfallMm.toFixed(1)} mm <small>${row.rainfallHours === 24 ? "24/24 hours" : `partial day · ${row.rainfallHours}/24 hours`}</small>`;
+        const temperature = row.minTemp == null || row.maxTemp == null
+          ? "Unavailable"
+          : `${row.minTemp.toFixed(1)}–${row.maxTemp.toFixed(1)} °C <small>${row.temperatureHours}/24 hourly values</small>`;
+        return `<tr><th scope="row">${escapeHtml(formatDay(row.day))}</th><td data-label="Rain forecast">${rain}</td><td data-label="Temperature">${temperature}</td></tr>`;
+      }).join("");
+    }
+
+    function downloadPlanningCsv() {
+      if (!planningBriefRows.length || !planningBriefContext) return;
+      const context = planningBriefContext;
+      const columns = ["day", "forecast_rain_mm", "rain_hours_available", "temperature_min_c", "temperature_max_c", "temperature_hours_available", "provider", "selected_location", "latitude", "longitude", "brief_generated_at", "data_note"];
+      const note = "Provider point estimate; not a local station observation, district average, official advisory, or planting recommendation";
+      const rows = planningBriefRows.map((row) => [row.day, row.rainfallMm, row.rainfallHours, row.minTemp, row.maxTemp, row.temperatureHours, context.provider, context.location, context.latitude, context.longitude, context.generatedAt, note]);
+      const csv = [columns, ...rows].map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
+      const slug = context.location.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "location";
+      const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `sifwaku-${slug}-7-day-brief-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      window.setTimeout(() => { link.remove(); URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function printPlanningBrief() {
+      if (planningBriefRows.length && planningBriefContext) window.print();
+    }
+
+    function completeForecastWindows(forecast, field, reducer, selectLowest = false, referenceTime = null, timestampAtExtreme = false) {
+      const cutoff = referenceTime ? zambiaForecastTime(referenceTime) : null;
+      const points = (forecast || [])
+        .map((item) => ({
+          timestamp: zambiaForecastTime(item.timestamp),
+          value: item[field] === null || item[field] === undefined || item[field] === "" ? null : Number(item[field]),
+        }))
+        .filter((point) => !Number.isFinite(cutoff) || point.timestamp > cutoff)
+        .sort((left, right) => left.timestamp - right.timestamp);
+      let best = null;
+      for (let start = 0; start <= points.length - 24; start += 1) {
+        const window = points.slice(start, start + 24);
+        const complete = window.every((point, index) =>
+          Number.isFinite(point.timestamp)
+          && Number.isFinite(point.value)
+          && (index === 0 || point.timestamp - window[index - 1].timestamp === 3600000)
+        );
+        if (!complete) continue;
+        const values = window.map((point) => point.value);
+        const value = reducer(values);
+        if (!best || (selectLowest ? value < best.value : value > best.value)) {
+          const extremeIndex = timestampAtExtreme ? values.indexOf(value) : 0;
+          best = { value, start: window[0].timestamp, eventTime: window[extremeIndex].timestamp, end: window[23].timestamp };
+        }
+      }
+      return best;
+    }
+
+    function advisoryCard(kind, title, status, detail, className) {
+      return `<article class="hazard-item ${className}"><span class="hazard-kind">${kind}</span><strong>${title}</strong><p>${detail}</p><span class="hazard-status">${status}</span></article>`;
+    }
+
+    function formatForecastTime(timestamp) {
+      return new Date(timestamp).toLocaleString("en-ZM", { timeZone: "Africa/Lusaka", month: "short", day: "numeric", hour: "numeric" });
+    }
+
+    function renderHazardAdvisories(forecast, referenceTime) {
+      const referenceTimestamp = referenceTime ? zambiaForecastTime(referenceTime) : Date.now();
+      const threeDayForecast = (forecast || []).filter((point) => {
+        const timestamp = zambiaForecastTime(point.timestamp);
+        return Number.isFinite(timestamp) && timestamp <= referenceTimestamp + 72 * 60 * 60 * 1000;
+      });
+      const rainfall = completeForecastWindows(threeDayForecast, "rainfall_mm", (values) => values.reduce((sum, value) => sum + value, 0), false, referenceTime);
+      const wind = completeForecastWindows(threeDayForecast, "wind_speed_ms", (values) => Math.max(...values), false, referenceTime, true);
+      const cold = completeForecastWindows(threeDayForecast, "temperature_c", (values) => Math.min(...values), true, referenceTime, true);
+      const cards = [];
+
+      if (!rainfall) {
+        cards.push(advisoryCard("Heavy rainfall", "Unavailable", "No complete 24-hour data", "The rainfall forecast has gaps; no level is assigned.", "hazard-unavailable"));
+      } else if (rainfall.value >= 100) {
+        cards.push(advisoryCard("Heavy rainfall", "Heavy rainfall outlook", "HIGH · project screening", `${rainfall.value.toFixed(1)} mm in the peak rolling 24-hour window starting ${formatForecastTime(rainfall.start)}. This is not a flood prediction.`, "hazard-high"));
+      } else if (rainfall.value >= 50) {
+        cards.push(advisoryCard("Heavy rainfall", "Rainfall watch", "WATCH · project screening", `${rainfall.value.toFixed(1)} mm in the peak rolling 24-hour window starting ${formatForecastTime(rainfall.start)}.`, "hazard-watch"));
+      } else {
+        cards.push(advisoryCard("Heavy rainfall", "Below rainfall screen", "BELOW PROJECT THRESHOLD", `Peak rolling 24-hour total in the 3-day forecast: ${rainfall.value.toFixed(1)} mm.`, "hazard-none"));
+      }
+
+      if (!wind) {
+        cards.push(advisoryCard("Strong wind", "Unavailable", "No complete 24-hour data", "The wind forecast has gaps; no level is assigned.", "hazard-unavailable"));
+      } else if (wind.value * 3.6 >= 60) {
+        cards.push(advisoryCard("Strong wind", "Strong wind outlook", "HIGH · project screening", `Peak sustained wind: ${(wind.value * 3.6).toFixed(0)} km/h at ${formatForecastTime(wind.eventTime)}. Gusts are not included.`, "hazard-high"));
+      } else if (wind.value * 3.6 >= 40) {
+        cards.push(advisoryCard("Strong wind", "Windy conditions", "WATCH · project screening", `Peak sustained wind: ${(wind.value * 3.6).toFixed(0)} km/h at ${formatForecastTime(wind.eventTime)}.`, "hazard-watch"));
+      } else {
+        cards.push(advisoryCard("Strong wind", "Below wind screen", "BELOW PROJECT THRESHOLD", `Peak sustained wind in the 3-day forecast: ${(wind.value * 3.6).toFixed(0)} km/h.`, "hazard-none"));
+      }
+
+      if (!cold) {
+        cards.push(advisoryCard("Cold exposure", "Unavailable", "No complete 24-hour data", "The temperature forecast has gaps; no level is assigned.", "hazard-unavailable"));
+      } else if (cold.value <= 5) {
+        cards.push(advisoryCard("Cold exposure", "Cold conditions outlook", "HIGH · project screening", `Forecast low: ${cold.value.toFixed(1)}°C at ${formatForecastTime(cold.eventTime)}. Protect people, crops, and animals sensitive to cold.`, "hazard-high"));
+      } else if (cold.value <= 8) {
+        cards.push(advisoryCard("Cold exposure", "Cool conditions watch", "WATCH · project screening", `Forecast low: ${cold.value.toFixed(1)}°C at ${formatForecastTime(cold.eventTime)}.`, "hazard-watch"));
+      } else if (cold.value <= COLD_TEMP_THRESHOLD_C) {
+        cards.push(advisoryCard("Cold exposure", "Cool conditions outlook", "COOL · project screening", `Forecast low: ${cold.value.toFixed(1)}°C at ${formatForecastTime(cold.eventTime)}. Consider warmer clothing for early morning and evening.`, "hazard-watch"));
+      } else {
+        cards.push(advisoryCard("Cold exposure", "No cool or cold threshold crossed", "ABOVE PROJECT THRESHOLD", `Lowest hourly temperature in the 3-day forecast: ${cold.value.toFixed(1)}°C.`, "hazard-none"));
+      }
+
+      document.getElementById("hazard-advisories").innerHTML = cards.join("");
+    }
+
+    function setWeatherConnectionState(available, freshness = "") {
+      const dot = document.querySelector(".live-dot");
+      dot.classList.remove("pending");
+      dot.classList.toggle("unavailable", !available);
+      dot.classList.toggle("stale", available && /AGING|STALE/i.test(freshness));
+    }
+
+    function setWarning(level, score) {
+      const copy = {
+        LOW: ["Lower heat-risk screen", "The current provider-based estimate is below the project screening thresholds."],
+        MODERATE: ["Moderate heat-risk screen", "Consider cooler hours for strenuous outdoor activity and check on people more affected by heat."],
+        HIGH: ["High heat-risk screen", "Limit strenuous outdoor activity during the hottest hours and follow local authority guidance."],
+        EXTREME: ["Very high heat-risk screen", "This project estimate is unusually high. Check local authority guidance and the data timestamp."],
+      };
+      const text = copy[level] || ["Screen unavailable", "A fresh weather estimate is not available. Check back shortly."];
+      document.getElementById("warning-title").textContent = text[0];
+      document.getElementById("warning-action").textContent = text[1];
+      document.getElementById("warning-score").textContent = score == null ? "--" : Number(score).toFixed(0);
+      document.querySelector(".warning-banner").className = `warning-banner warning-${(level || "unknown").toLowerCase()}`;
+    }
+
+    const districtSearch = document.getElementById("district-search");
+    const districtOptions = document.getElementById("district-options");
+    const provinceSelect = document.getElementById("province-select");
+    const provinceMapStatus = document.getElementById("province-map-status");
+    const provinceLayer = document.getElementById("province-layer");
+    const districtLayer = document.getElementById("district-layer");
+    const rainfallLayer = document.getElementById("rainfall-raster-layer");
+    const rainfallClip = document.getElementById("zambia-rainfall-clip");
+    const rainfallSlider = document.getElementById("rainfall-time-slider");
+    const rainfallFrameLabel = document.getElementById("rainfall-frame-label");
+    const rainfallMapStatus = document.getElementById("rainfall-map-status");
+    const rainfallPlayButton = document.getElementById("rainfall-play");
+    const rainfallOpacity = document.getElementById("rainfall-opacity");
+    const rainfallOldestLabel = document.getElementById("rainfall-oldest-label");
+    const rainfallLatestLabel = document.getElementById("rainfall-latest-label");
+    const NASA_RAINFALL_TILES = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default";
+    const RAINFALL_TILE_ZOOM = 6;
+    const RAINFALL_MATRIX_SET = "GoogleMapsCompatible_Level6";
+    let provinceMapShapes = [];
+    let provinceMapProjection = null;
+    let locationDirectory = null;
+    let selectedProvince = "Lusaka";
+    let rainfallFrames = [];
+    let rainfallFramesStale = false;
+    let rainfallPlaybackTimer = null;
+    let rainfallRenderId = 0;
+
+    function geometryPolygons(geometry) {
+      if (geometry?.type === "Polygon") return [geometry.coordinates || []];
+      if (geometry?.type === "MultiPolygon") return geometry.coordinates || [];
+      return [];
+    }
+
+    function createProvinceMapProjection(features) {
+      let minWorldX = Infinity;
+      let maxWorldX = -Infinity;
+      let minWorldY = Infinity;
+      let maxWorldY = -Infinity;
+      features.forEach((feature) => {
+        geometryPolygons(feature.geometry).forEach((polygon) => polygon.forEach((ring) => ring.forEach((point) => {
+          const projected = projectToWorld(point[0], point[1]);
+          minWorldX = Math.min(minWorldX, projected.x);
+          maxWorldX = Math.max(maxWorldX, projected.x);
+          minWorldY = Math.min(minWorldY, projected.y);
+          maxWorldY = Math.max(maxWorldY, projected.y);
+        })));
+      });
+      if (!Number.isFinite(minWorldX)) throw new Error("No province boundary coordinates found");
+
+      const width = 800;
+      const height = 680;
+      const padding = 28;
+      const scale = Math.min((width - padding * 2) / (maxWorldX - minWorldX), (height - padding * 2) / (maxWorldY - minWorldY));
+      const offsetX = (width - (maxWorldX - minWorldX) * scale) / 2 - minWorldX * scale;
+      const offsetY = (height - (maxWorldY - minWorldY) * scale) / 2 - minWorldY * scale;
+      const worldToView = (worldX, worldY) => ({ x: worldX * scale + offsetX, y: worldY * scale + offsetY });
+      const project = (longitude, latitude) => {
+        const point = projectToWorld(longitude, latitude);
+        return worldToView(point.x, point.y);
+      };
+      project.worldBounds = { minX: minWorldX, maxX: maxWorldX, minY: minWorldY, maxY: maxWorldY };
+      project.worldToView = worldToView;
+      return project;
+    }
+
+    function projectToWorld(longitude, latitude) {
+      const clampedLatitude = Math.max(-85.05112878, Math.min(85.05112878, latitude));
+      const radians = clampedLatitude * Math.PI / 180;
+      return {
+        x: (longitude + 180) / 360,
+        y: (1 - Math.asinh(Math.tan(radians)) / Math.PI) / 2,
+      };
+    }
+
+    function mapPathForFeature(feature) {
+      return geometryPolygons(feature.geometry).flatMap((polygon) => polygon.map((ring) => {
+        return ring.map((point, index) => {
+          const mapped = provinceMapProjection(point[0], point[1]);
+          return `${index === 0 ? "M" : "L"}${mapped.x.toFixed(2)} ${mapped.y.toFixed(2)}`;
+        }).join(" ") + " Z";
+      })).join(" ");
+    }
+
+    function projectLocationToMap(lat, lon) {
+      if (!provinceMapProjection) return { x: 0, y: 0 };
+      return provinceMapProjection(lon, lat);
+    }
+
+    function formatRainfallFrame(frame) {
+      const timestamp = Date.parse(frame);
+      if (!Number.isFinite(timestamp)) return "Time unavailable";
+      const date = new Date(timestamp);
+      const label = date.toLocaleString("en-GB", {
+        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC",
+      });
+      const ageMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+      const age = ageMinutes >= 60 ? `${Math.floor(ageMinutes / 60)}h ${ageMinutes % 60}m old` : `${ageMinutes}m old`;
+      return `Source frame ${label} UTC · ${age}`;
+    }
+
+    function formatRainfallTimeShort(frame) {
+      const timestamp = Date.parse(frame);
+      return Number.isFinite(timestamp)
+        ? new Date(timestamp).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" })
+        : "—";
+    }
+
+    function renderRainfallFrame(frameIndex) {
+      if (!rainfallLayer || !provinceMapProjection || !rainfallFrames.length) return;
+      const index = Math.max(0, Math.min(rainfallFrames.length - 1, Number(frameIndex) || 0));
+      const frame = rainfallFrames[index];
+      const projection = provinceMapProjection;
+      const bounds = projection.worldBounds;
+      const tilesAcross = 2 ** RAINFALL_TILE_ZOOM;
+      const xStart = Math.max(0, Math.floor(bounds.minX * tilesAcross));
+      const xEnd = Math.min(tilesAcross - 1, Math.floor(bounds.maxX * tilesAcross));
+      const yStart = Math.max(0, Math.floor(bounds.minY * tilesAcross));
+      const yEnd = Math.min(tilesAcross - 1, Math.floor(bounds.maxY * tilesAcross));
+      const tileCount = (xEnd - xStart + 1) * (yEnd - yStart + 1);
+      const renderId = ++rainfallRenderId;
+      let loadedTiles = 0;
+      let finishedTiles = 0;
+      rainfallLayer.replaceChildren();
+      if (rainfallSlider) rainfallSlider.value = String(index);
+      if (rainfallFrameLabel) rainfallFrameLabel.textContent = formatRainfallFrame(frame);
+      if (rainfallMapStatus) rainfallMapStatus.textContent = rainfallFramesStale
+        ? "Using the last available timeline · NASA could not refresh it."
+        : "Loading satellite rain tiles for Zambia…";
+
+      const handleTileResult = (loaded) => {
+        if (renderId !== rainfallRenderId) return;
+        if (loaded) loadedTiles += 1;
+        finishedTiles += 1;
+        if (finishedTiles === tileCount && rainfallMapStatus) {
+          rainfallMapStatus.textContent = loadedTiles
+            ? `NASA GPM IMERG layer ready · ${loadedTiles}/${tileCount} map tiles loaded.`
+            : "Satellite tiles are unavailable right now; province selection still works.";
+        }
+      };
+
+      for (let y = yStart; y <= yEnd; y += 1) {
+        for (let x = xStart; x <= xEnd; x += 1) {
+          const topLeft = projection.worldToView(x / tilesAcross, y / tilesAcross);
+          const bottomRight = projection.worldToView((x + 1) / tilesAcross, (y + 1) / tilesAcross);
+          const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+          image.setAttribute("x", topLeft.x.toFixed(2));
+          image.setAttribute("y", topLeft.y.toFixed(2));
+          image.setAttribute("width", (bottomRight.x - topLeft.x).toFixed(2));
+          image.setAttribute("height", (bottomRight.y - topLeft.y).toFixed(2));
+          image.setAttribute("preserveAspectRatio", "none");
+          image.setAttribute("aria-hidden", "true");
+          image.addEventListener("load", () => handleTileResult(true), { once: true });
+          image.addEventListener("error", () => handleTileResult(false), { once: true });
+          image.setAttribute("href", `${NASA_RAINFALL_TILES}/${frame}/${RAINFALL_MATRIX_SET}/${RAINFALL_TILE_ZOOM}/${y}/${x}.png`);
+          rainfallLayer.appendChild(image);
+        }
+      }
+    }
+
+    async function loadRainfallFrames() {
+      if (!rainfallMapStatus || !rainfallSlider || !rainfallPlayButton) return;
+      try {
+        const response = await fetch("/api/rainfall-map-frames");
+        if (!response.ok) throw new Error(`Satellite timeline HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.ok || !Array.isArray(data.frames) || !data.frames.length) {
+          throw new Error(data.error || "No recent satellite rainfall frames are available.");
+        }
+        rainfallFrames = data.frames;
+        rainfallFramesStale = Boolean(data.stale);
+        rainfallSlider.max = String(rainfallFrames.length - 1);
+        rainfallSlider.value = String(rainfallFrames.length - 1);
+        rainfallSlider.disabled = rainfallFrames.length < 2;
+        rainfallPlayButton.disabled = rainfallFrames.length < 2;
+        if (rainfallOldestLabel) rainfallOldestLabel.textContent = `${formatRainfallTimeShort(rainfallFrames[0])} UTC`;
+        if (rainfallLatestLabel) rainfallLatestLabel.textContent = `Latest · ${formatRainfallTimeShort(rainfallFrames[rainfallFrames.length - 1])} UTC`;
+        renderRainfallFrame(rainfallFrames.length - 1);
+      } catch (error) {
+        rainfallSlider.disabled = true;
+        rainfallPlayButton.disabled = true;
+        rainfallMapStatus.textContent = "Satellite rainfall is unavailable. The Zambia map and location selectors still work.";
+        if (rainfallFrameLabel) rainfallFrameLabel.textContent = error.message;
+      }
+    }
+
+    function stopRainfallAnimation() {
+      if (rainfallPlaybackTimer) window.clearInterval(rainfallPlaybackTimer);
+      rainfallPlaybackTimer = null;
+      if (rainfallPlayButton) {
+        rainfallPlayButton.textContent = "Animate recent rain";
+        rainfallPlayButton.setAttribute("aria-pressed", "false");
+      }
+    }
+
+    function toggleRainfallAnimation() {
+      if (rainfallPlaybackTimer) {
+        stopRainfallAnimation();
+        return;
+      }
+      if (rainfallFrames.length < 2) return;
+      let index = Number(rainfallSlider.value);
+      if (index >= rainfallFrames.length - 1) index = 0;
+      rainfallSlider.value = String(index);
+      renderRainfallFrame(index);
+      rainfallPlayButton.textContent = "Pause";
+      rainfallPlayButton.setAttribute("aria-pressed", "true");
+      rainfallPlaybackTimer = window.setInterval(() => {
+        index += 1;
+        if (index >= rainfallFrames.length) {
+          rainfallSlider.value = String(rainfallFrames.length - 1);
+          renderRainfallFrame(rainfallFrames.length - 1);
+          stopRainfallAnimation();
+          return;
+        }
+        rainfallSlider.value = String(index);
+        renderRainfallFrame(index);
+      }, 1600);
+    }
+
+    function renderDistrictMarkers(provinceName) {
+      if (!districtLayer || !locationDirectory || !locationDirectory.provinces[provinceName]) {
+        districtLayer.innerHTML = "";
+        return;
+      }
+      const province = locationDirectory.provinces[provinceName];
+      const districtNames = Object.keys(province.districts || {});
+      districtLayer.innerHTML = "";
+      districtNames.forEach((district) => {
+        const [lat, lon] = province.districts[district] || [province.latitude, province.longitude];
+        const point = projectLocationToMap(lat, lon);
+        const node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        node.setAttribute("cx", point.x);
+        node.setAttribute("cy", point.y);
+        node.setAttribute("r", districtSearch && districtSearch.value === district ? 8 : 5.5);
+        node.setAttribute("class", `district-marker${districtSearch && districtSearch.value === district ? " active" : ""}`);
+        node.setAttribute("tabindex", "0");
+        node.setAttribute("role", "button");
+        node.setAttribute("aria-label", `Select ${district} district`);
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = district;
+        node.appendChild(title);
+        node.addEventListener("click", () => applyLocation(provinceName, district));
+        node.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            applyLocation(provinceName, district);
+          }
+        });
+        districtLayer.appendChild(node);
+      });
+    }
+
+    function updateProvinceSelectionVisuals(provinceName) {
+      provinceMapShapes.forEach((shape) => {
+        const isActive = shape.dataset.province === provinceName;
+        shape.classList.toggle("active", isActive);
+      });
+      if (provinceSelect) provinceSelect.value = provinceName;
+      renderDistrictMarkers(provinceName);
+    }
+
+    async function loadProvinceGeoJson() {
+      if (!provinceLayer) return;
+      try {
+        const response = await fetch("/assets/data/zambia-provinces.geojson");
+        if (!response.ok) throw new Error(`Province GeoJSON HTTP ${response.status}`);
+        const data = await response.json();
+        const ns = "http://www.w3.org/2000/svg";
+        provinceLayer.innerHTML = "";
+        if (rainfallClip) rainfallClip.replaceChildren();
+
+        const features = Array.isArray(data.features) ? data.features : [];
+        provinceMapProjection = createProvinceMapProjection(features);
+        features.forEach((feature) => {
+          const name = feature?.properties?.shapeName || feature?.properties?.name;
+          if (!name || !geometryPolygons(feature.geometry).length) return;
+
+          const pathData = mapPathForFeature(feature);
+          if (rainfallClip) {
+            const clipShape = document.createElementNS(ns, "path");
+            clipShape.setAttribute("d", pathData);
+            clipShape.setAttribute("fill-rule", "evenodd");
+            rainfallClip.appendChild(clipShape);
+          }
+          const path = document.createElementNS(ns, "path");
+          path.setAttribute("d", pathData);
+          path.setAttribute("fill-rule", "evenodd");
+          path.setAttribute("class", "province-shape");
+          path.setAttribute("data-province", name);
+          path.setAttribute("tabindex", "0");
+          path.setAttribute("role", "button");
+          path.setAttribute("aria-label", `Select ${name} province`);
+          const title = document.createElementNS(ns, "title");
+          title.textContent = `${name} Province`;
+          path.appendChild(title);
+          path.addEventListener("click", () => setProvinceSelection(name));
+          path.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setProvinceSelection(name);
+            }
+          });
+          provinceLayer.appendChild(path);
+        });
+
+        provinceMapShapes = Array.from(provinceLayer.querySelectorAll(".province-shape"));
+        updateProvinceSelectionVisuals(selectedProvince);
+        if (provinceMapStatus) provinceMapStatus.textContent = "Province boundaries · circles mark district and town reference locations.";
+        if (rainfallFrames.length) renderRainfallFrame(Number(rainfallSlider?.value) || 0);
+      } catch (error) {
+        console.error("Zambia province boundaries could not be loaded.", error);
+        if (provinceMapStatus) {
+          provinceMapStatus.textContent = "The province map could not be loaded. Use the location selectors above instead.";
+          provinceMapStatus.classList.add("map-status-error");
+        }
+      }
+    }
+
+    function setProvinceSelection(provinceName, shouldRefresh = true) {
+      if (!provinceName || !locationDirectory || !locationDirectory.provinces[provinceName]) return;
+      selectedProvince = provinceName;
+      updateProvinceSelectionVisuals(provinceName);
+      const province = locationDirectory.provinces[provinceName];
+      const coords = [province.latitude, province.longitude];
+      document.getElementById("location-name").value = provinceName;
+      document.getElementById("latitude").value = coords[0];
+      document.getElementById("longitude").value = coords[1];
+      document.getElementById("selected-province-name").textContent = provinceName;
+      if (districtSearch) districtSearch.value = "";
+      if (provinceMapStatus) provinceMapStatus.textContent = `Showing a provider estimate for ${provinceName}; this is not a province-wide measurement.`;
+      populateDistrictOptions(provinceName);
+      if (shouldRefresh) {
+        refreshAll();
+      }
+    }
+
+    loadProvinceGeoJson();
+
+    if (provinceSelect) {
+      provinceSelect.addEventListener("change", (event) => setProvinceSelection(event.target.value));
+    }
+
+    function matchingName(names, value) {
+      return names.find((name) => name.toLowerCase() === value.trim().toLowerCase());
+    }
+
+    function populateDistrictOptions(provinceName) {
+      districtOptions.innerHTML = "";
+      const province = locationDirectory?.provinces[provinceName];
+      if (!province) return;
+      Object.keys(province.districts).forEach((district) => {
+        const option = document.createElement("option");
+        option.value = district;
+        districtOptions.appendChild(option);
+      });
+    }
+
+    function applyLocation(province, district, shouldRefresh = true) {
+      const provinceData = locationDirectory.provinces[province];
+      const coordinates = district ? provinceData.districts[district] : [provinceData.latitude, provinceData.longitude];
+      selectedProvince = province;
+      updateProvinceSelectionVisuals(province);
+      if (provinceSelect) provinceSelect.value = province;
+      document.getElementById("location-name").value = district || province;
+      document.getElementById("selected-province-name").textContent = district || province;
+      document.getElementById("latitude").value = coordinates[0];
+      document.getElementById("longitude").value = coordinates[1];
+      districtSearch.value = district || "";
+      if (provinceMapStatus) provinceMapStatus.textContent = `Showing a provider estimate for ${district || province}; this is not a province-wide measurement.`;
+      populateDistrictOptions(province);
+      renderDistrictMarkers(province);
+      if (shouldRefresh) {
+        refreshAll();
+      }
+    }
+
+    districtSearch.addEventListener("input", () => {
+      if (!locationDirectory) return;
+      for (const [province, data] of Object.entries(locationDirectory.provinces)) {
+        const district = matchingName(Object.keys(data.districts), districtSearch.value);
+        if (district) {
+          applyLocation(province, district);
+          return;
+        }
+      }
+    });
+
+    async function loadLocationDirectory() {
+      try {
+        const response = await fetch("/assets/data/zambia-districts.json");
+        if (!response.ok) throw new Error(`Location directory HTTP ${response.status}`);
+        locationDirectory = await response.json();
+
+        if (provinceSelect) {
+          Object.keys(locationDirectory.provinces).forEach((province) => {
+            const option = document.createElement("option");
+            option.value = province;
+            option.textContent = province;
+            provinceSelect.appendChild(option);
+          });
+        }
+
+        setProvinceSelection("Lusaka", false);
+        applyLocation("Lusaka", "Lusaka", false);
+      } catch (error) {
+        document.getElementById("weather-error").innerHTML = `<div class="alert alert-warn">${escapeHtml(error.message)}</div>`;
+      }
+    }
+    let autoRefresh = true;
+    let refreshTimer;
+    let countdownTimer;
+    let secondsUntilRefresh = 900;
+    let refreshSequence = 0;
+
+    function dashboardParams() {
+      const latitude = Number(document.getElementById("latitude").value);
+      const longitude = Number(document.getElementById("longitude").value);
+      if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) throw new Error("Latitude must be between -90 and 90.");
+      if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new Error("Longitude must be between -180 and 180.");
+      return {
+        location_name: document.getElementById("location-name").value.trim() || "Selected area",
+        latitude,
+        longitude,
+      };
+    }
+
+    function scheduleRefresh() {
+      clearTimeout(refreshTimer);
+      clearInterval(countdownTimer);
+      if (!autoRefresh) return;
+      secondsUntilRefresh = 900;
+      countdownTimer = setInterval(() => {
+        secondsUntilRefresh -= 1;
+        const note = document.querySelector(".toolbar-note");
+        if (note && secondsUntilRefresh > 0) note.textContent = `Next update in ${Math.ceil(secondsUntilRefresh / 60)} min · provider timing may vary.`;
+      }, 1000);
+      refreshTimer = setTimeout(() => refreshAll(), 900000);
+    }
+
+    function toggleAutoRefresh() {
+      autoRefresh = !autoRefresh;
+      const button = document.getElementById("btn-auto");
+      button.textContent = `Auto-refresh: ${autoRefresh ? "on" : "off"}`;
+      button.setAttribute("aria-pressed", String(autoRefresh));
+      if (autoRefresh) scheduleRefresh();
+      else { clearTimeout(refreshTimer); clearInterval(countdownTimer); }
+    }
+
+    function updateMapStatus(riskPayload, params) {
+      if (!provinceMapStatus) return;
+      if (!riskPayload?.weather_ok) {
+        provinceMapStatus.textContent = `Viewing ${params.location_name}. A weather estimate is not available right now.`;
+        return;
+      }
+      const source = riskPayload.observation_provider || "weather provider";
+      provinceMapStatus.textContent = `Viewing ${params.location_name} · ${source} estimate for this point only.`;
+    }
+
+    function renderForecastChart(points, referenceTime = null) {
+      const referenceTimestamp = referenceTime ? zambiaForecastTime(referenceTime) : null;
+      const valid = points
+        .filter((point) => point.timestamp && Number.isFinite(zambiaForecastTime(point.timestamp)) && Number.isFinite(Number(point.temperature_c)))
+        .filter((point) => !Number.isFinite(referenceTimestamp) || zambiaForecastTime(point.timestamp) > referenceTimestamp)
+        .sort((left, right) => zambiaForecastTime(left.timestamp) - zambiaForecastTime(right.timestamp));
+      const chart = document.getElementById("forecast-chart");
+      if (valid.length < 2) {
+      chart.innerHTML = "<div class=\"chart-empty\">No graph shown: fewer than two usable temperature points are available.</div>";
+        return;
+      }
+      const width = 760;
+      const height = 270;
+      const pad = { top: 24, right: 20, bottom: 48, left: 48 };
+      const values = valid.map((point) => Number(point.temperature_c));
+      const hasCold = values.some((value) => value <= COLD_TEMP_THRESHOLD_C);
+      const hasHot = values.some((value) => value >= HOT_TEMP_THRESHOLD_C);
+      const min = Math.floor(Math.min(...values, ...(hasCold ? [COLD_TEMP_THRESHOLD_C] : [])) - 1);
+      const max = Math.ceil(Math.max(...values, ...(hasHot ? [HOT_TEMP_THRESHOLD_C] : [])) + 1);
+      const range = Math.max(max - min, 1);
+      const firstTime = zambiaForecastTime(valid[0].timestamp);
+      const lastTime = zambiaForecastTime(valid[valid.length - 1].timestamp);
+      const totalTime = Math.max(lastTime - firstTime, 1);
+      const x = (point) => pad.left + ((zambiaForecastTime(point.timestamp) - firstTime) / totalTime) * (width - pad.left - pad.right);
+      const y = (value) => height - pad.bottom - ((value - min) / range) * (height - pad.top - pad.bottom);
+      let path = "";
+      let previousTime = null;
+      valid.forEach((point) => {
+        const temperature = Number(point.temperature_c);
+        const currentTime = zambiaForecastTime(point.timestamp);
+        const command = previousTime !== null && currentTime - previousTime === 3600000 ? "L" : "M";
+        path += `${command}${x(point).toFixed(1)},${y(temperature).toFixed(1)} `;
+        previousTime = currentTime;
+      });
+      const grid = [0, 0.5, 1].map((ratio) => {
+        const value = min + range * ratio;
+        const yPos = y(value).toFixed(1);
+        return `<line x1=\"${pad.left}\" x2=\"${width - pad.right}\" y1=\"${yPos}\" y2=\"${yPos}\" class=\"chart-grid\" /><text x=\"${pad.left - 8}\" y=\"${Number(yPos) + 4}\" text-anchor=\"end\" class=\"chart-label\">${value.toFixed(0)}°</text>`;
+      }).join("");
+      const dots = valid.map((point) => {
+        const temperature = Number(point.temperature_c);
+        const className = temperature >= HOT_TEMP_THRESHOLD_C ? "forecast-hot-dot" : temperature <= COLD_TEMP_THRESHOLD_C ? "forecast-cold-dot" : "chart-dot";
+        return `<circle cx=\"${x(point).toFixed(1)}\" cy=\"${y(temperature).toFixed(1)}\" r=\"3.4\" class=\"${className}\"><title>${escapeHtml(new Date(point.timestamp).toLocaleString())}: ${temperature.toFixed(1)}°C</title></circle>`;
+      }).join("");
+      const hotY = y(HOT_TEMP_THRESHOLD_C).toFixed(1);
+      const coldY = y(COLD_TEMP_THRESHOLD_C).toFixed(1);
+      const thresholds = [
+        ...(HOT_TEMP_THRESHOLD_C >= min && HOT_TEMP_THRESHOLD_C <= max ? [`<line x1=\"${pad.left}\" x2=\"${width - pad.right}\" y1=\"${hotY}\" y2=\"${hotY}\" class=\"forecast-hot-line\" />`] : []),
+        ...(COLD_TEMP_THRESHOLD_C >= min && COLD_TEMP_THRESHOLD_C <= max ? [`<line x1=\"${pad.left}\" x2=\"${width - pad.right}\" y1=\"${coldY}\" y2=\"${coldY}\" class=\"forecast-cold-line\" />`] : []),
+      ].join("");
+      const dayGroups = new Map();
+      valid.forEach((point) => {
+        const day = String(point.timestamp).slice(0, 10);
+        if (!dayGroups.has(day)) dayGroups.set(day, []);
+        dayGroups.get(day).push(Number(point.temperature_c));
+      });
+      const alerts = [];
+      dayGroups.forEach((dayTemps, day) => {
+        const dayLabel = formatDay(day);
+        const highest = Math.max(...dayTemps);
+        const lowest = Math.min(...dayTemps);
+        if (highest >= HOT_TEMP_THRESHOLD_C) alerts.push(`<span class=\"forecast-alert forecast-alert-hot\"><strong>HOT</strong> ${escapeHtml(dayLabel)} · up to ${highest.toFixed(1)}°C</span>`);
+        if (lowest <= COLD_TEMP_THRESHOLD_C) {
+          const label = lowest <= 8 ? "COLD" : "COOL";
+          alerts.push(`<span class=\"forecast-alert forecast-alert-cold\"><strong>${label}</strong> ${escapeHtml(dayLabel)} · down to ${lowest.toFixed(1)}°C</span>`);
+        }
+      });
+      const alertSummary = alerts.length ? alerts.join("") : '<span class=\"forecast-alert forecast-alert-none\">No forecast dates cross the hot or cold screening thresholds.</span>';
+      const dayTicks = [...dayGroups.keys()].map((day) => {
+        const timestamp = zambiaForecastTime(`${day}T12:00:00`);
+        const tickX = pad.left + ((timestamp - firstTime) / totalTime) * (width - pad.left - pad.right);
+        const label = formatDay(day);
+        return `<line x1=\"${tickX.toFixed(1)}\" x2=\"${tickX.toFixed(1)}\" y1=\"${height - pad.bottom}\" y2=\"${height - pad.bottom + 5}\" class=\"chart-axis\" /><text x=\"${tickX.toFixed(1)}\" y=\"${height - 12}\" text-anchor=\"middle\" class=\"chart-label\">${escapeHtml(label)}</text>`;
+      }).join("");
+      chart.innerHTML = `<div class=\"chart-title\">Seven-day hourly temperature outlook · ${valid.length} upcoming values</div><div class=\"chart-note\"><span class=\"legend-line actual\"></span>Forecast temperature <span class=\"forecast-legend-hot\"></span>Hot ≥${HOT_TEMP_THRESHOLD_C}°C <span class=\"forecast-legend-cold\"></span>Cool/cold ≤${COLD_TEMP_THRESHOLD_C}°C</div><div class=\"forecast-alerts\" aria-live=\"polite\">${alertSummary}</div><div class=\"chart-note\">The chart is a visual guide; daily temperature ranges and rainfall are listed in the planning brief below. Project thresholds are screening references, not official warnings.</div><svg viewBox=\"0 0 ${width} ${height}\" aria-hidden=\"true\" focusable=\"false\"><line x1=\"${pad.left}\" x2=\"${width - pad.right}\" y1=\"${height - pad.bottom}\" y2=\"${height - pad.bottom}\" class=\"chart-axis\" />${grid}${thresholds}${dayTicks}<path d=\"${path}\" class=\"chart-line\" />${dots}</svg>`;
+    }
+
+    async function refreshAll() {
+      const refreshId = ++refreshSequence;
+      document.getElementById("loading").style.display = "inline";
+      document.getElementById("btn-refresh").disabled = true;
+      try {
+        const params = dashboardParams();
+        if (refreshId !== refreshSequence) return;
+        document.querySelector(".agency-kicker").textContent = `${params.location_name.toUpperCase()} WEATHER · ZAMBIA`;
+        document.getElementById("location-lead").textContent = `${params.location_name} · current conditions and seven-day outlook`;
+        const forecastPromise = apiGet("/api/forecast", { ...params, days: 7, store: false })
+          .catch((error) => ({ ok: false, error: error.message, forecast: [] }));
+
+        // Current + risk
+        let risk;
+        try {
+          risk = await apiGet("/api/risk", params);
+        } catch (error) {
+          risk = { ok: false, weather_ok: false, weather_error: error.message, observation: null, risk: null, enso_ok: false };
+        }
+        if (refreshId !== refreshSequence) return;
+        updateMapStatus(risk, params);
+        if (risk.weather_ok && risk.risk) {
+          document.getElementById("weather-error").innerHTML = "";
+          document.getElementById("t-temp").textContent = fmt(risk.risk.temperature_c, " °C");
+          document.getElementById("t-hum").textContent = fmt(risk.risk.humidity_percent, " %");
+          document.getElementById("t-wind").textContent = fmt(
+            risk.risk.components && risk.risk.components.wind_speed_ms != null
+              ? risk.risk.components.wind_speed_ms * 3.6
+              : null,
+            " km/h"
+          );
+          document.getElementById("t-rain").textContent = fmt(
+            risk.risk.components && risk.risk.components.rainfall_mm,
+            " mm"
+          );
+          document.getElementById("t-pressure").textContent = fmt(risk.observation?.pressure_hpa, " hPa");
+          document.getElementById("r-score").textContent = fmt(risk.risk.risk_score) + "/100";
+          document.getElementById("r-level").innerHTML = riskBadge(risk.risk.risk_level);
+            setWarning(risk.risk.risk_level, risk.risk.risk_score);
+            const observation = risk.observation || {};
+            const observedAt = observation.timestamp ? new Date(observation.timestamp).toLocaleString() : "time unavailable";
+          document.getElementById("last-updated").textContent = observedAt;
+            document.getElementById("observation-meta").textContent = `Provider estimate from ${risk.observation_provider || "weather source"} · source time ${observedAt} · not a local station reading`;
+            const quality = risk.data_quality || {};
+            document.getElementById("data-quality").textContent = `Freshness: ${quality.status || "UNKNOWN"} · ${quality.basis || "Provider and observation details unavailable"}`;
+            document.getElementById("location-lead").textContent = `${params.location_name} · updated ${observedAt}`;
+            document.getElementById("r-disclaimer").textContent = risk.risk.methodology_note || "This is an illustrative screening index, not an official warning or a probability.";
+            setWeatherConnectionState(true, quality.status || "");
+        } else {
+          document.getElementById("weather-error").innerHTML =
+            `<div class="alert alert-warn">${escapeHtml(risk.weather_error || "Weather data unavailable")}</div>`;
+          document.getElementById("t-temp").textContent = "—";
+          document.getElementById("t-hum").textContent = "—";
+          document.getElementById("t-wind").textContent = "—";
+          document.getElementById("t-rain").textContent = "—";
+          document.getElementById("t-pressure").textContent = "—";
+          document.getElementById("r-score").textContent = risk.risk ? fmt(risk.risk.risk_score) + "/100" : "—";
+          document.getElementById("r-level").innerHTML = risk.risk ? riskBadge(risk.risk.risk_level) : "—";
+            setWarning(risk.risk?.risk_level, risk.risk?.risk_score);
+            document.getElementById("last-updated").textContent = "Weather unavailable";
+            document.getElementById("observation-meta").textContent = "No usable provider estimate returned. The heat-risk screen is withheld.";
+            document.getElementById("data-quality").textContent = "Freshness: unavailable · no usable weather estimate returned";
+            document.getElementById("r-disclaimer").textContent = "No heat-risk screen is shown without a usable weather estimate.";
+            setWeatherConnectionState(false);
+        }
+
+        if (risk.enso_ok || (risk.risk && risk.risk.enso_phase)) {
+          document.getElementById("e-phase").textContent = risk.risk?.enso_phase || "—";
+          document.getElementById("e-index").textContent = fmt(risk.risk?.enso_index);
+        } else {
+          document.getElementById("e-phase").textContent = "—";
+          document.getElementById("e-index").textContent = "—";
+        }
+
+        // Forecast
+        const fc = await forecastPromise;
+        if (refreshId !== refreshSequence) return;
+        if (!fc.ok) {
+          renderPlanningBrief([], null);
+          renderHazardAdvisories([]);
+          document.getElementById("forecast-body").innerHTML =
+            `<div class="alert alert-warn">${escapeHtml(fc.error || "Forecast unavailable")}</div>`;
+        } else {
+          const coordinates = `${Number(params.latitude).toFixed(3)}, ${Number(params.longitude).toFixed(3)}`;
+          renderPlanningBrief(fc.forecast || [], {
+            location: params.location_name,
+            provider: fc.provider || "Weather provider",
+            generatedAt: fc.requested_at_utc || new Date().toISOString(),
+            latitude: params.latitude,
+            longitude: params.longitude,
+            coordinates,
+          });
+          const forecastReferenceTime = fc.requested_at_utc || risk.observation?.timestamp || new Date().toISOString();
+          renderHazardAdvisories(fc.forecast || [], forecastReferenceTime);
+          renderForecastChart(fc.forecast || [], forecastReferenceTime);
+          const rows = (fc.forecast || []).slice(0, 24).map(r =>
+            `<tr>
+              <td>${escapeHtml(r.timestamp)}</td>
+              <td>${fmt(r.temperature_c, " °C")}</td>
+              <td>${fmt(r.humidity_percent, " %")}</td>
+              <td>${fmt(r.rainfall_mm, " mm")}</td>
+              <td>${escapeHtml(r.source)}</td>
+            </tr>`
+          ).join("");
+          document.getElementById("forecast-body").innerHTML = `
+            <p style="font-size:0.85rem">Provider: ${escapeHtml(fc.provider)} · ${fc.count} hourly estimates${fc.invalid_count ? ` · ${fc.invalid_count} rejected by range checks` : ""}</p>
+            <table>
+              <thead><tr><th>Time</th><th>Temp</th><th>Humidity</th><th>Rain</th><th>Source</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>`;
+        }
+      } catch (e) {
+        if (refreshId !== refreshSequence) return;
+        renderPlanningBrief([], null);
+        renderHazardAdvisories([]);
+        document.getElementById("weather-error").innerHTML =
+          `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+        setWarning(null, null);
+        document.getElementById("last-updated").textContent = "Update failed";
+        document.getElementById("data-quality").textContent = "Freshness: unavailable · weather update failed";
+        setWeatherConnectionState(false);
+      } finally {
+        if (refreshId === refreshSequence) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("btn-refresh").disabled = false;
+          scheduleRefresh();
+        }
+      }
+    }
+
+    rainfallSlider?.addEventListener("input", () => {
+      stopRainfallAnimation();
+      renderRainfallFrame(Number(rainfallSlider.value));
+    });
+    rainfallPlayButton?.addEventListener("click", toggleRainfallAnimation);
+    rainfallOpacity?.addEventListener("input", () => {
+      if (rainfallLayer) rainfallLayer.style.opacity = String(Number(rainfallOpacity.value) / 100);
+    });
+    if (rainfallLayer && rainfallOpacity) rainfallLayer.style.opacity = String(Number(rainfallOpacity.value) / 100);
+
+    // Load the boundaries and satellite timeline alongside the selected location weather.
+    loadProvinceGeoJson();
+    loadRainfallFrames();
+    window.setInterval(loadRainfallFrames, 900000);
+
+    // Load the location directory first so the first request uses the selected town coordinates.
+    loadLocationDirectory().then(() => refreshAll());
+  </script>
+</body>
+</html>
+
+

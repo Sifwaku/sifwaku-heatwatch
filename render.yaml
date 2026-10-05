@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sifwaku-heatwatch
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    disk:
+      name: heatwatch-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:////var/data/sifwaku_heatwatch.db
+      - key: LOG_LEVEL
+        value: INFO

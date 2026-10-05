@@ -1,0 +1,180 @@
+{
+  "provinces": {
+    "Central": {
+      "latitude": -14.0,
+      "longitude": 28.0,
+      "districts": {
+        "Chibombo": [-14.857, 27.640],
+        "Chisamba": [-14.772, 28.459],
+        "Chitambo": [-12.543, 30.400],
+        "Kabwe": [-14.458, 28.400],
+        "Kapiri Mposhi": [-14.196, 28.487],
+        "Luano": [-14.461, 29.568],
+        "Mkushi": [-13.765, 29.483],
+        "Mumbwa": [-14.957, 26.469],
+        "Ngabwe": [-14.095, 27.378],
+        "Serenje": [-13.189, 30.598],
+        "Shibuyunji": [-15.332, 27.683]
+      }
+    },
+    "Copperbelt": {
+      "latitude": -13.0,
+      "longitude": 28.0,
+      "districts": {
+        "Chililabombwe": [-12.358, 27.761],
+        "Chingola": [-12.504, 27.788],
+        "Kalulushi": [-12.761, 27.855],
+        "Kitwe": [-12.830, 28.262],
+        "Luanshya": [-13.074, 28.348],
+        "Lufwanyama": [-12.951, 27.572],
+        "Masaiti": [-13.342, 28.686],
+        "Mpongwe": [-13.574, 27.635],
+        "Mufulira": [-12.561, 28.254],
+        "Ndola": [-12.946, 28.536]
+      }
+    },
+    "Eastern": {
+      "latitude": -13.5,
+      "longitude": 32.5,
+      "districts": {
+        "Chadiza": [-14.113, 32.476],
+        "Chipata": [-13.742, 32.637],
+        "Katete": [-14.048, 32.022],
+        "Lundazi": [-12.415, 33.337],
+        "Mambwe": [-13.357, 32.024],
+        "Nyimba": [-14.393, 30.582],
+        "Petauke": [-14.377, 31.283],
+        "Sinda": [-14.258, 31.778],
+        "Vubwi": [-13.994, 32.906],
+        "Chasefu": [-11.922, 33.154],
+        "Chipangali": [-13.319, 32.680],
+        "Kasenengwa": [-13.666, 32.265],
+        "Lumezi": [-12.696, 32.539],
+        "Lusangazi": [-13.775, 31.409],
+        "Chama": [-11.274, 32.798]
+      }
+    },
+    "Luapula": {
+      "latitude": -11.5,
+      "longitude": 29.0,
+      "districts": {
+        "Chembe": [-11.746, 28.642],
+        "Chienge": [-8.777, 29.110],
+        "Chipili": [-10.480, 29.140],
+        "Kawambwa": [-9.765, 29.376],
+        "Lunga": [-11.570, 30.123],
+        "Mansa": [-11.124, 28.965],
+        "Milenge": [-11.938, 29.212],
+        "Mwansabombwe": [-9.955, 28.778],
+        "Mwense": [-10.520, 28.740],
+        "Nchelenge": [-9.368, 28.727],
+        "Samfya": [-11.747, 29.648],
+        "Chifunabuli": [-11.090, 29.657]
+      }
+    },
+    "Lusaka": {
+      "latitude": -15.4,
+      "longitude": 29.3,
+      "districts": {
+        "Chilanga": [-15.451, 28.088],
+        "Chirundu": [-16.104, 28.642],
+        "Chongwe": [-15.390, 28.620],
+        "Kafue": [-15.723, 28.677],
+        "Luangwa": [-15.353, 30.068],
+        "Lusaka": [-15.426, 28.313],
+        "Rufunsa": [-15.164, 29.465]
+      }
+    },
+    "Muchinga": {
+      "latitude": -11.0,
+      "longitude": 32.5,
+      "districts": {
+        "Chinsali": [-10.298, 32.215],
+        "Isoka": [-10.022, 32.773],
+        "Mafinga": [-10.323, 33.263],
+        "Mpika": [-12.050, 31.764],
+        "Nakonde": [-9.465, 32.609],
+        "Shiwang'andu": [-11.088, 31.835],
+        "Kanchibiya": [-11.535, 30.863],
+        "Lavushimanda": [-12.593, 31.023]
+      }
+    },
+    "Northern": {
+      "latitude": -10.0,
+      "longitude": 31.0,
+      "districts": {
+        "Chilubi": [-11.090, 30.295],
+        "Kaputa": [-8.814, 29.464],
+        "Kasama": [-10.551, 31.029],
+        "Luwingu": [-10.552, 30.182],
+        "Mbala": [-8.964, 31.472],
+        "Mporokoso": [-9.463, 29.931],
+        "Mpulungu": [-8.983, 30.717],
+        "Mungwi": [-9.992, 31.684],
+        "Nsama": [-8.814, 29.948],
+        "Senga Hill": [-9.277, 31.826],
+        "Lunte": [-9.828, 30.257],
+        "Lupososhi": [-10.656, 29.599]
+      }
+    },
+    "North-Western": {
+      "latitude": -13.0,
+      "longitude": 25.5,
+      "districts": {
+        "Chavuma": [-13.293, 22.320],
+        "Ikelenge": [-11.254, 24.215],
+        "Kabompo": [-13.517, 23.988],
+        "Kasempa": [-13.795, 26.257],
+        "Manyinga": [-13.081, 24.312],
+        "Mufumbwe": [-13.766, 25.035],
+        "Mwinilunga": [-12.156, 24.586],
+        "Solwezi": [-12.304, 26.510],
+        "Zambezi": [-13.599, 22.832],
+        "Kalumbila": [-12.362, 25.671],
+        "Mushindamo": [-12.500, 26.836]
+      }
+    },
+    "Southern": {
+      "latitude": -16.5,
+      "longitude": 26.5,
+      "districts": {
+        "Chikankata": [-16.032, 28.220],
+        "Choma": [-16.860, 27.048],
+        "Gwembe": [-16.661, 28.005],
+        "Kalomo": [-16.843, 26.431],
+        "Kazungula": [-17.051, 25.695],
+        "Livingstone": [-17.810, 25.825],
+        "Mazabuka": [-15.894, 27.777],
+        "Monze": [-16.129, 27.342],
+        "Namwala": [-15.957, 26.792],
+        "Pemba": [-16.756, 27.403],
+        "Siavonga": [-16.408, 28.478],
+        "Sinazongwe": [-17.457, 27.282],
+        "Zimba": [-17.667, 26.619],
+        "Itezhi-Tezhi": [-15.923, 25.873]
+      }
+    },
+    "Western": {
+      "latitude": -15.0,
+      "longitude": 23.0,
+      "districts": {
+        "Kalabo": [-14.856, 22.786],
+        "Kaoma": [-14.518, 24.621],
+        "Limulunga": [-14.960, 23.389],
+        "Luampa": [-15.433, 24.846],
+        "Lukulu": [-14.375, 23.847],
+        "Mitete": [-14.284, 22.938],
+        "Mongu": [-15.443, 23.718],
+        "Mulobezi": [-16.280, 24.727],
+        "Mwandi": [-17.112, 24.684],
+        "Nalolo": [-15.831, 22.879],
+        "Nkeyema": [-14.861, 25.162],
+        "Senanga": [-16.023, 23.693],
+        "Sesheke": [-16.931, 23.864],
+        "Shangombo": [-16.495, 22.485],
+        "Sikongo": [-15.323, 22.247],
+        "Sioma": [-16.757, 23.145]
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Provider status — SIFWAKU HeatWatch</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="brand">🌡️ SIFWAKU HeatWatch</span>
+    <nav>
+      <a href="/dashboard">Weather</a>
+      <a href="/history">History</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Provider status</h1>
+    <p style="color:var(--muted)">
+      Live connectivity tests. Status is based on actual HTTP requests, not website existence.
+    </p>
+
+    <div class="card">
+      <button class="btn" id="btn-test" onclick="runTests()">Run live tests (Lusaka)</button>
+      <span id="loading" style="display:none;margin-left:0.75rem"><span class="spinner"></span> Testing…</span>
+      <div id="meta" style="margin-top:0.75rem;color:var(--muted);font-size:0.85rem"></div>
+    </div>
+
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Variable / type</th>
+            <th>Historical</th>
+            <th>Forecast</th>
+            <th>Real-time</th>
+            <th>Zambia</th>
+            <th>API Key</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" style="color:var(--muted)">Click “Run live tests” to query providers.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" id="details" style="display:none">
+      <h2>Test details</h2>
+      <div id="detail-body"></div>
+    </div>
+  </main>
+
+  <script src="/assets/js/app.js"></script>
+  <script>
+    async function runTests() {
+      document.getElementById("loading").style.display = "inline";
+      document.getElementById("btn-test").disabled = true;
+      try {
+        const data = await apiGet("/api/api-sources");
+        document.getElementById("meta").textContent =
+          `Tested at ${data.tested_at} · location ${data.location.latitude}, ${data.location.longitude}`;
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = "";
+        let detailHtml = "";
+        for (const s of data.sources) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(s.source)}</td>
+            <td>${escapeHtml(s.type)}</td>
+            <td>${escapeHtml(s.historical)}</td>
+            <td>${escapeHtml(s.forecast)}</td>
+            <td>${escapeHtml(s.real_time)}</td>
+            <td>${escapeHtml(s.zambia)}</td>
+            <td>${escapeHtml(s.api_key)}</td>
+            <td>${statusBadge(s.status)}</td>
+          `;
+          tbody.appendChild(tr);
+          detailHtml += `
+            <div class="pipeline-step">
+              <h4>${escapeHtml(s.source)}</h4>
+              <pre>Endpoint: ${escapeHtml(s.endpoint)}
+HTTP: ${s.http_status ?? "—"} · ${s.response_time_ms ?? "—"} ms
+Auth required: ${s.authentication_required}
+Rate limit: ${escapeHtml(s.rate_limit_info)}
+Data: ${escapeHtml(s.data_availability)}
+Variables: ${(s.variables_returned || []).join(", ") || "—"}
+Units: ${JSON.stringify(s.units || {})}
+Coverage: ${escapeHtml(s.geographic_coverage)}
+Historical: ${escapeHtml(s.historical_coverage)}
+Last success: ${escapeHtml(s.last_successful_request) || "—"}
+Error: ${escapeHtml(s.error_message) || "none"}
+Preview: ${escapeHtml((s.raw_response_preview || "").slice(0, 400))}</pre>
+            </div>`;
+        }
+        document.getElementById("details").style.display = "block";
+        document.getElementById("detail-body").innerHTML = detailHtml;
+      } catch (e) {
+        document.getElementById("tbody").innerHTML =
+          `<tr><td colspan="8" class="alert alert-error">${escapeHtml(e.message)}</td></tr>`;
+      } finally {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("btn-test").disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

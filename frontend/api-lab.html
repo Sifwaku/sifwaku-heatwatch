@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API Laboratory — SIFWAKU HeatWatch</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="brand">🌡️ SIFWAKU HeatWatch</span>
+    <nav>
+      <a href="/dashboard">Weather</a>
+      <a href="/history">History</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>API laboratory</h1>
+    <p style="color:var(--muted)">
+      Most important Version 1 tool. Performs a real request and walks the full pipeline:
+      REQUEST → HTTP STATUS → RESPONSE TIME → RAW → PARSED → VALIDATION → DATABASE STORAGE.
+    </p>
+
+    <div class="card">
+      <div class="form-row">
+        <div>
+          <label>Provider</label>
+          <select id="provider">
+            <option>Open-Meteo</option>
+            <option>OpenWeatherMap</option>
+            <option>NOAA CPC ONI</option>
+          </select>
+        </div>
+        <div>
+          <label>Data type</label>
+          <select id="data_type">
+            <option value="current">current</option>
+            <option value="forecast">forecast</option>
+            <option value="historical">historical</option>
+            <option value="enso">enso</option>
+          </select>
+        </div>
+        <div>
+          <label>Location name</label>
+          <input id="location_name" value="Lusaka" />
+        </div>
+        <div>
+          <label>Latitude</label>
+          <input id="latitude" type="number" step="any" value="-15.4167" />
+        </div>
+        <div>
+          <label>Longitude</label>
+          <input id="longitude" type="number" step="any" value="28.2833" />
+        </div>
+        <div>
+          <label>Start date (historical)</label>
+          <input id="start_date" type="date" value="2024-01-01" />
+        </div>
+        <div>
+          <label>End date (historical)</label>
+          <input id="end_date" type="date" value="2024-01-07" />
+        </div>
+        <div>
+          <label>Forecast days</label>
+          <input id="days" type="number" min="1" max="16" value="3" />
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+        <input type="checkbox" id="store" checked style="width:auto;margin:0" />
+        Attempt database storage test
+      </label>
+      <button class="btn" id="btn-run" onclick="runLab()">TEST API</button>
+      <span id="loading" style="display:none;margin-left:0.75rem"><span class="spinner"></span> Running…</span>
+    </div>
+
+    <div id="output"></div>
+  </main>
+
+  <script src="/assets/js/app.js"></script>
+  <script>
+    async function runLab() {
+      document.getElementById("loading").style.display = "inline";
+      document.getElementById("btn-run").disabled = true;
+      document.getElementById("output").innerHTML = "";
+      try {
+        const data = await apiPost("/api/api-lab/test", {
+          provider: document.getElementById("provider").value,
+          data_type: document.getElementById("data_type").value,
+          latitude: document.getElementById("latitude").value,
+          longitude: document.getElementById("longitude").value,
+          location_name: document.getElementById("location_name").value,
+          start_date: document.getElementById("start_date").value,
+          end_date: document.getElementById("end_date").value,
+          days: document.getElementById("days").value,
+          store: document.getElementById("store").checked,
+        });
+        const steps = [
+          ["REQUEST", JSON.stringify(data.request, null, 2)],
+          ["HTTP STATUS", String(data.http_status ?? "—")],
+          ["RESPONSE TIME", data.response_time_ms != null ? data.response_time_ms + " ms" : "—"],
+          ["RAW RESPONSE", data.raw_response || "(empty or not captured)"],
+          ["PARSED DATA", JSON.stringify(data.parsed_data, null, 2) || "—"],
+          ["VALIDATION", JSON.stringify(data.validation, null, 2) || "—"],
+          ["DATABASE STORAGE TEST", data.database_storage || "—"],
+        ];
+        let html = "";
+        if (data.error) {
+          html += `<div class="alert alert-error"><strong>Error:</strong> ${escapeHtml(data.error)}</div>`;
+        } else {
+          html += `<div class="alert alert-ok">Pipeline completed for <strong>${escapeHtml(data.provider)}</strong> / ${escapeHtml(data.data_type)}</div>`;
+        }
+        for (const [title, body] of steps) {
+          html += `<div class="pipeline-step"><h4>${title}</h4><pre>${escapeHtml(body)}</pre></div>`;
+        }
+        document.getElementById("output").innerHTML = html;
+      } catch (e) {
+        document.getElementById("output").innerHTML =
+          `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+      } finally {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("btn-run").disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

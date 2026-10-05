@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>History — SIFWAKU HeatWatch</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <span class="brand">🌡️ SIFWAKU HeatWatch</span>
+    <nav>
+      <a href="/dashboard">Weather</a>
+      <a href="/history" class="active">History</a>
+    </nav>
+  </header>
+
+  <main class="container analysis-page">
+    <div class="page-heading">
+      <div>
+        <div class="agency-kicker">DESCRIPTIVE CLIMATE ANALYSIS</div>
+        <h1>Historical weather analysis</h1>
+        <p class="lead">Explore provider-estimated daily weather for a selected area and period.</p>
+      </div>
+    </div>
+
+    <form id="analysis-form" class="analysis-filters">
+      <div class="analysis-field">
+        <label for="analysis-location">Area name</label>
+        <input id="analysis-location" value="Lusaka" maxlength="64" required />
+      </div>
+      <div class="analysis-field">
+        <label for="analysis-latitude">Latitude</label>
+        <input id="analysis-latitude" type="number" value="-15.4167" min="-90" max="90" step="any" required />
+      </div>
+      <div class="analysis-field">
+        <label for="analysis-longitude">Longitude</label>
+        <input id="analysis-longitude" type="number" value="28.2833" min="-180" max="180" step="any" required />
+      </div>
+      <div class="analysis-field">
+        <label for="analysis-start">From</label>
+        <input id="analysis-start" type="date" required />
+      </div>
+      <div class="analysis-field">
+        <label for="analysis-end">To</label>
+        <input id="analysis-end" type="date" required />
+      </div>
+      <div class="analysis-field">
+        <label for="analysis-threshold">Hot-day threshold (°C)</label>
+        <input id="analysis-threshold" type="number" value="32" min="-20" max="60" step="0.5" required />
+      </div>
+      <div class="analysis-actions">
+        <button class="btn" id="analysis-load" type="submit">Load analysis</button>
+        <button class="btn btn-secondary" id="analysis-export" type="button" disabled>Download CSV</button>
+        <button class="btn btn-secondary" id="analysis-image-export" type="button">Export chart image</button>
+      </div>
+    </form>
+
+    <p id="analysis-status" class="history-summary" aria-live="polite">Choose a period to view historical weather estimates.</p>
+
+    <section class="analysis-metrics" aria-label="Historical summary statistics">
+      <div class="analysis-stat"><span class="label">Temperature coverage</span><strong id="metric-coverage">—</strong><small id="metric-days">No data loaded</small></div>
+      <div class="analysis-stat"><span class="label">Mean daily maximum</span><strong id="metric-mean-high">—</strong><small>Across available daily highs</small></div>
+      <div class="analysis-stat"><span class="label">Mean daily minimum</span><strong id="metric-mean-low">—</strong><small>Night-time low temperature</small></div>
+      <div class="analysis-stat"><span class="label">90th percentile high</span><strong id="metric-p90">—</strong><small>Upper-tail daily maximum</small></div>
+      <div class="analysis-stat"><span class="label">Hot-day spells</span><strong id="metric-hot">—</strong><small id="metric-hot-share">Threshold: 32°C</small></div>
+      <div class="analysis-stat"><span class="label">Mean daily range</span><strong id="metric-range">—</strong><small>Daily high minus daily low</small></div>
+      <div class="analysis-stat"><span class="label">Recorded rainfall</span><strong id="metric-rain">—</strong><small id="metric-rain-days">—</small></div>
+    </section>
+
+    <section class="analysis-section">
+      <div class="section-heading"><span class="section-number">01</span><h2>Daily temperature and rainfall</h2></div>
+      <div id="analysis-chart" class="history-chart" aria-live="polite">Load a date range to draw the historical series.</div>
+    </section>
+
+    <section class="analysis-section">
+      <div class="section-heading"><span class="section-number">02</span><h2>Monthly profile</h2></div>
+      <div class="analysis-table-wrap">
+        <table class="analysis-table">
+          <thead><tr><th>Month</th><th>Days</th><th>Mean high</th><th>Mean low</th><th>Hot days</th><th>Rainfall</th></tr></thead>
+          <tbody id="monthly-summary"><tr><td colspan="6">Load a date range to summarize by month.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="disclaimer official-note">Open-Meteo archive values are gridded reanalysis estimates, not local station measurements. The 90th percentile is descriptive for this selected period, not a long-term climate normal. Monthly summaries describe the selected year(s); they do not establish a climate trend or test whether ENSO caused local heat. Heat thresholds are user-selected, not official warning criteria.</p>
+  </main>
+
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/history.js?v=3"></script>
+</body>
+</html>
