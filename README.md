@@ -195,18 +195,17 @@ The dashboard refreshes about every 15 minutes while its page is open. Provider 
 5. Historical collection → 6. Baseline risk → 7. Dashboard → 8. ENSO analysis →  
 9. ML (blocked until data proven) → 10. Alerts → 11. Sensors  
 
-## 16. Hosting the full dashboard
+## 16. Free hosting
 
-GitHub stores the source code; it does not run this Python API. The full dashboard can be deployed from the GitHub repository to Render using the included `render.yaml` Blueprint:
+GitHub stores the source code; it does not run this Python API. The included `render.yaml` is configured for a **free Render web service**:
 
-1. Create a GitHub repository and push this project, keeping it private or public as preferred. `.gitignore` excludes `.env`, SQLite databases, virtual environments, and caches.
-2. In Render, create a Blueprint from that repository and select `render.yaml`.
-3. Review the resources before creating them. This Blueprint uses a paid web service and a 1 GB persistent disk so SQLite history can survive restarts and redeploys. Do not create it unless the displayed plan and charges are acceptable.
-4. After the service is live, open its `onrender.com` URL. `/` redirects to the dashboard; `/api/health` is the deploy health check.
+1. In Render, choose **New → Blueprint**, connect the `Sifwaku/sifwaku-heatwatch` GitHub repository, and deploy the `render.yaml` file.
+2. Confirm the service plan is **Free** before creating it. The app uses no paid add-ons or persistent disk.
+3. Once deployment finishes, open the service's `onrender.com` URL. `/` redirects to the dashboard; `/api/health` reports whether the API is responding.
 
-The included `.python-version` pins the service to Python 3.12, which matches the project's pinned scientific Python dependencies. Open-Meteo works without a key. Optional provider keys should be added through the host's secret settings, never committed to the repository.
+This free setup is for a public preview. Render may spin the service down after 15 minutes without traffic; the next visit can take about a minute to load. Its filesystem is temporary, so the SQLite database (including locally saved history) can be erased when the service restarts, sleeps, or is redeployed. Weather is fetched from the provider when requested, so a sleeping service does not refresh data in the background. These limits make it unsuitable for dependable alerts or official operational decisions.
 
-The persistent SQLite disk is suitable for a small pilot on a single service instance. For a multi-instance or operational service, migrate to managed PostgreSQL and add forecast verification, monitoring, backups, and access controls before relying on it for official decisions.
+The included `.python-version` pins the service to Python 3.12, which matches the project's pinned scientific Python dependencies. Open-Meteo works without a key. Optional provider keys should be added through the host's secret settings, never committed to the repository. For persistent records and continuous availability, move to a paid host or managed database when funding is available, then add backups, monitoring, and forecast verification.
 
 ---
 
